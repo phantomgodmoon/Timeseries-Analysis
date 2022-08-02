@@ -1,0 +1,101 @@
+library(stats)
+library(lmtest)
+library(tidyquant)
+library(tseries)
+library(car) 
+library(crypto2)
+library(tidyverse)
+
+BTC <- read.csv("C:\\Users\\legend\\Desktop\\Autocorrelation\\BTCUSD_1day.csv", header=TRUE, stringsAsFactors=FALSE)
+ETH <- read.csv("C:\\Users\\legend\\Desktop\\Autocorrelation\\ETHUSD_1day.csv", header=TRUE, stringsAsFactors=FALSE)
+SOL <- read.csv("C:\\Users\\legend\\Desktop\\Autocorrelation\\SOLUSD_1day.csv", header=TRUE, stringsAsFactors=FALSE)
+FTT <- read.csv("C:\\Users\\legend\\Desktop\\Autocorrelation\\FTTUSD_1day.csv", header=TRUE, stringsAsFactors=FALSE)
+XRP <- read.csv("C:\\Users\\legend\\Desktop\\Autocorrelation\\XRPUSD_1day.csv", header=TRUE, stringsAsFactors=FALSE)
+SPY_2019<- read.csv("C:\\Users\\legend\\Desktop\\Autocorrelation\\SPY_2019.csv", header=TRUE, stringsAsFactors=FALSE)
+SPY <- read.csv("C:\\Users\\legend\\Desktop\\Autocorrelation\\SPY.csv", header=TRUE, stringsAsFactors=FALSE)
+HSI<- read.csv("C:\\Users\\legend\\Desktop\\Autocorrelation\\^HSI.csv", header=TRUE, stringsAsFactors=FALSE)
+
+options(max.print=100000)
+options("getSymbols.warning4.0"=FALSE)
+options("getSymbols.yahoo.warning"=FALSE)
+
+
+
+Autocorrelation_Test_Change<-function(data){
+data_temp<-subset(data,select=-c(high,low,volume))
+change<-{0}
+for(i in 2:nrow(data_temp)){
+change<-append(change,log(data_temp[i,3]/data_temp[i,2]))
+}
+data_temp$per_change<-change
+acf(data_temp$per_change)
+}
+
+Autocorrelation_Test_close<-function(data){
+data_temp<-subset(data,select=-c(high,low,volume))
+change<-{0}
+for(i in 2:nrow(data_temp)){
+change<-append(change,log(data_temp[i,3]/data_temp[i,2]))
+}
+data_temp$per_change<-change
+acf(data_temp$per_change)
+}
+
+Indirect_Autocorrelation<-function(data){
+data_temp<-subset(data,select=-c(high,low,volume))
+change<-{0}
+for(i in 2:nrow(data_temp)){
+change<-append(change,log(data_temp[i,3]/data_temp[i,2]))
+}
+data_temp$per_change<-change
+pacf(data_temp$per_change)
+}
+
+Autocorrelation_Stock_Partial<-function(tickers){
+change<-{0}
+for(i in 2:nrow(tickers)){
+change<-append(change,log(tickers[i,5]/tickers[i-1,5]))
+}
+tickers$per_change<-change
+pacf(tickers$per_change)
+}
+
+Autocorrelation_Stock<-function(tickers){
+change<-{0}
+for(i in 2:nrow(tickers)){
+change<-append(change,log(tickers[i,5]/tickers[i-1,5]))
+}
+tickers$per_change<-change
+acf(tickers$per_change)
+}
+
+Autocorrelation_Stock_Close<-function(tickers){
+acf(tickers$Close)
+}
+
+LBTest_Close<-function(tickers){
+Box.test(tickers$close, lag = 1, type = "Ljung")
+}
+
+
+
+LBTest_change<-function(data,time_lag){
+tickers<-subset(data,select=-c(high,low,volume))
+change<-{0}
+for(i in 2:nrow(tickers)){
+change<-append(change,log(tickers[i,3]/tickers[i,2]))
+}
+tickers$per_change<-change
+Box.test(tickers$per_change,lag=time_lag,type="Ljung")
+}
+
+LBTest_change_stock<-function(data,time_lag){
+tickers<-subset(data,select=-c(Volume))
+change<-{0}
+for(i in 2:nrow(tickers)){
+change<-append(change,log(tickers[i,5]/tickers[i-1,5]))
+}
+tickers$per_change<-change
+Box.test(tickers$per_change,lag=time_lag,type="Ljung")
+}
+
